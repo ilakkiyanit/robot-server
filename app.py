@@ -2,32 +2,20 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-current_command = "s"
-
 @app.route('/')
 def home():
-    return "Robot Server Running"
+    return "Server Running"
 
-@app.route('/set')
-def set_command():
-    global current_command
-    text = request.args.get('text', '').lower()
+@app.route('/audio', methods=['POST'])
+def audio():
+    data = request.data
 
-    if "forward" in text:
-        current_command = "f"
-    elif "back" in text:
-        current_command = "b"
-    elif "left" in text:
-        current_command = "l"
-    elif "right" in text:
-        current_command = "r"
-    elif "stop" in text:
-        current_command = "s"
+    print("Audio received:", len(data))
 
-    return "Command set: " + current_command
+    return "ok"
 
 @app.route('/get')
 def get_command():
-    return current_command
+    return "s"
 
 app.run(host='0.0.0.0', port=81)
