@@ -2,26 +2,32 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
+current_command = "s"
+
 @app.route('/')
 def home():
     return "Robot Server Running"
 
-@app.route('/command')
-def command():
+@app.route('/set')
+def set_command():
+    global current_command
     text = request.args.get('text', '').lower()
 
     if "forward" in text:
-        return "f"
+        current_command = "f"
     elif "back" in text:
-        return "b"
+        current_command = "b"
     elif "left" in text:
-        return "l"
+        current_command = "l"
     elif "right" in text:
-        return "r"
+        current_command = "r"
     elif "stop" in text:
-        return "s"
-    else:
-        return "s"
+        current_command = "s"
 
-if __name__ == "__main__":
-    app.run()
+    return "Command set: " + current_command
+
+@app.route('/get')
+def get_command():
+    return current_command
+
+app.run(host='0.0.0.0', port=81)
