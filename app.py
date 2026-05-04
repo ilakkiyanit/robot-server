@@ -3,8 +3,6 @@ import whisper
 
 app = Flask(__name__)
 
-model = whisper.load_model("base")
-
 @app.route("/")
 def home():
     return "RAPO AI READY"
@@ -17,12 +15,10 @@ def audio():
     with open("voice.wav", "wb") as f:
         f.write(data)
 
+    model = whisper.load_model("tiny")
+
     result = model.transcribe("voice.wav")
 
-    text = result["text"]
-
-    print("You said:", text)
-
-    return text
+    return result["text"]
 
 app.run(host="0.0.0.0", port=81)
