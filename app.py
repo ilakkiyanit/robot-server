@@ -1,24 +1,21 @@
 from flask import Flask, request
-import whisper
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "RAPO AI READY"
+    return "RAPO DEBUG READY"
 
 @app.route("/audio", methods=["POST"])
 def audio():
-
     data = request.data
 
-    with open("voice.wav", "wb") as f:
+    with open("voice.raw", "wb") as f:
         f.write(data)
 
-    model = whisper.load_model("tiny")
+    print("Received bytes:", len(data))
 
-    result = model.transcribe("voice.wav")
+    return "UPLOAD OK"
 
-    return result["text"]
-
-app.run(host="0.0.0.0", port=81)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=81)
