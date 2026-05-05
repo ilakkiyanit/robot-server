@@ -47,7 +47,6 @@ def audio():
     except:
         last_reply = "Could not understand"
         return last_reply
-
 @app.route("/reply")
 def reply():
-    return send_file("reply.mp3", mimetype="audio/mpeg"
+    return send_file("reply.mp3", mimetype="audio/mpeg")
