@@ -1,37 +1,17 @@
-from flask import Flask, request
-import wave
-import speech_recognition as sr
-
+from flask import Flask, request, send_file
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "RAPO FREE AI READY"
+    return "RAPO AUDIO DEBUG"
 
 @app.route("/audio", methods=["POST"])
 def audio():
-
     data = request.data
+    with open("voice.wav", "wb") as f:
+        f.write(data)
+    return "saved"
 
-    # save WAV
-    with wave.open("voice.wav", "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(4)      # 32-bit
-        wf.setframerate(16000)
-        wf.writeframes(data)
-
-    r = sr.Recognizer()
-
-    with sr.AudioFile("voice.wav") as source:
-        audio = r.record(source)
-
-    try:
-        text = r.recognize_google(audio)
-    except:
-        text = "Could not understand"
-
-    print(text)
-    return text
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=81)
+@app.route("/listen")
+def listen():
+    return send_file("voice.wav", mimetype="audio/wav")
