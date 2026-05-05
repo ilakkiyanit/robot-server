@@ -1,21 +1,21 @@
-from flask import Flask, request
+from flask import Flask, request, send_file
 import speech_recognition as sr
+from gtts import gTTS
 
 app = Flask(__name__)
 
-# ---------------- HOME ----------------
+last_reply = "Hello boss"
+
 @app.route("/")
 def home():
-    return "RAPO CHATBOT READY"
+    return "RAPO TALK READY"
 
-
-# ---------------- AUDIO CHAT ----------------
 @app.route("/audio", methods=["POST"])
 def audio():
+    global last_reply
 
     data = request.data
 
-    # Save uploaded voice
     with open("voice.wav", "wb") as f:
         f.write(data)
 
@@ -23,79 +23,31 @@ def audio():
 
     try:
         with sr.AudioFile("voice.wav") as source:
-
-            # Noise adjust
-            r.adjust_for_ambient_noise(source, duration=0.2)
-
-            # Read full audio
             audio_data = r.record(source)
 
-        # Speech to text
-        text = r.recognize_google(audio_data, language="en-US")
+        text = r.recognize_google(audio_data).lower()
 
-        text = text.lower()
+        if "hello" in text:
+            last_reply = "Hello boss"
 
-        print("You said:", text)
-
-        # ---------------- CHATBOT REPLIES ----------------
-        if "hello" in text or "hi" in text:
-            reply = "Hello boss"
-
-        elif "how are you" in text:
-            reply = "I am fine boss"
-
-        elif "your name" in text or "who are you" in text:
-            reply = "I am Rapo your robot friend"
-
-        elif "time" in text:
-            reply = "I do not have watch yet"
-
-        elif "thank you" in text:
-            reply = "Welcome boss"
+        elif "name" in text:
+            last_reply = "I am Rapo"
 
         elif "bye" in text:
-            reply = "Goodbye boss"
+            last_reply = "Goodbye boss"
 
         else:
-            reply = "I heard " + text
+            last_reply = "You said " + text
 
-        print("Reply:", reply)
+        tts = gTTS(last_reply)
+        tts.save("reply.mp3")
 
-        return reply
+        return last_reply
 
-    except sr.UnknownValueError:
-        return "Could not understand"
+    except:
+        last_reply = "Could not understand"
+        return last_reply
 
-    except sr.RequestError:
-        return "Speech service error"
-
-    except Exception as e:
-        print(e)
-        return "Server error"
-
-
-# ---------------- TEXT CHAT (optional) ----------------
-@app.route("/chat")
-def chat():
-
-    text = request.args.get("text", "").lower()
-
-    if text == "":
-        return "Say something"
-
-    if "hello" in text:
-        return "Hello boss"
-
-    elif "how are you" in text:
-        return "I am fine boss"
-
-    elif "name" in text:
-        return "I am Rapo"
-
-    else:
-        return "You said " + text
-
-
-# ---------------- RUN ----------------
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=81)
+@app.route("/reply")
+def reply():
+    return send_file("reply.mp3", mimetype="audio/mpeg"
