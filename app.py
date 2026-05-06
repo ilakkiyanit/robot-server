@@ -1,67 +1,63 @@
 from flask import Flask, request, send_file
 import speech_recognition as sr
 from gtts import gTTS
+import os
 import traceback
 
 app = Flask(__name__)
-
-last_reply = "Rapo ready"
 
 @app.route("/")
 def home():
     return "RAPO SERVER ONLINE"
 
-@app.route("/audio", methods=["GET","POST"])
+@app.route("/audio", methods=["POST"])
 def audio():
 
-    global last_reply
-
-    if request.method == "GET":
-        return "OK"
-
     try:
-        with open("voice.wav", "wb") as f:
+        with open("voice.wav","wb") as f:
             f.write(request.data)
 
         r = sr.Recognizer()
 
         with sr.AudioFile("voice.wav") as source:
-            audio_data = r.record(source)
+            audio = r.record(source)
 
-        text = r.recognize_google(audio_data)
-        text = text.lower()
+        text = r.recognize_google(audio).lower()
 
-        print("\nUSER SAID:", text)
+        print("USER:", text)
 
-        # IMPORTANT DEBUG
-        last_reply = "You said " + text
+        if "name" in text:
+            reply = "I am Rapo"
 
-        if "hello" in text:
-            last_reply = "Hello boss"
-
-        elif "name" in text:
-            last_reply = "I am Rapo"
+        elif "hello" in text:
+            reply = "Hello boss"
 
         elif "bye" in text:
-            last_reply = "Goodbye boss"
+            reply = "Goodbye boss"
 
-        print("REPLY:", last_reply)
+        else:
+            reply = "You said " + text
 
-        tts = gTTS(last_reply)
-        tts.save("reply.mp3")
+        print("REPLY:", reply)
 
-        return last_reply
+    except:
+        reply = "I could not understand"
 
-    except Exception as e:
-        print(traceback.format_exc())
-        last_reply = "Could not understand"
+    tts = gTTS(reply)
+    tts.save("reply.mp3")
 
-        tts = gTTS(last_reply)
-        tts.save("reply.mp3")
-
-        return last_reply
+    return reply
 
 
 @app.route("/reply")
 def reply():
-    return send_file("reply.mp3", mimetype="audio/mpeg")
+
+    return send_file(
+        "reply.mp3",
+        mimetype="audio/mpeg",
+        as_attachment=False,
+        max_age=0
+    )
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
