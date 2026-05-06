@@ -1,7 +1,6 @@
-from flask import Flask, request, send_file
+from flask import Flask, request
 import speech_recognition as sr
 from gtts import gTTS
-import os
 import traceback
 
 app = Flask(__name__)
@@ -22,9 +21,9 @@ def audio():
         with sr.AudioFile("voice.wav") as source:
             audio = r.record(source)
 
-        text = r.recognize_google(audio).lower()
+        text = r.recognize_google(audio, language="en-IN").lower()
 
-        print("USER:", text)
+        print("USER:", text, flush=True)
 
         if "name" in text:
             reply = "I am Rapo"
@@ -38,26 +37,17 @@ def audio():
         else:
             reply = "You said " + text
 
-        print("REPLY:", reply)
-
-    except:
+    except Exception as e:
+        print(traceback.format_exc(), flush=True)
         reply = "I could not understand"
 
-    tts = gTTS(reply)
+    tts = gTTS(reply, lang="en")
     tts.save("reply.mp3")
+
+    print("REPLY:", reply, flush=True)
 
     return reply
 
-
-@app.route("/reply")
-def reply():
-
-    return send_file(
-        "reply.mp3",
-        mimetype="audio/mpeg",
-        as_attachment=False,
-        max_age=0
-    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
